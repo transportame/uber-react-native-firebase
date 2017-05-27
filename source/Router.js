@@ -15,7 +15,7 @@ export default class TransportameRouter extends Component {
         <Scene key="root">
           <Scene key="auth" initial={true}>
             <Scene key="login" component={LoginPage} title="Login" login={login}></Scene>
-            <Scene key="signUp" component={RegisterPage} title="Registro"></Scene>
+            <Scene key="signUp" component={RegisterPage} title="Registro" register={register}></Scene>
             <Scene key="signUpCompleted" component={RegisteredPage} title="Registro completo!"></Scene>
           </Scene>
           <Scene key="home">

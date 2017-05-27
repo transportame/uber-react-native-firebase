@@ -7,6 +7,7 @@ import {
     StyleSheet,
     TouchableHighlight,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 
 import { Actions, ActionConst } from 'react-native-router-flux';
@@ -23,6 +24,34 @@ export default class Login extends Component {
         password:      null,
         passwordAgain: null,
         loading:       false,
+    }
+
+    updateCredentials(key, value) {
+      let credentials = this.state;
+      credentials[key] = value;
+      this.setState(credentials);
+    }
+
+    async register() {
+      try {
+        await this.props.register(this.state.email, this.state.password);
+        Alert.alert(
+          'Bienvenido',
+          'Ahora puedes hacer uso del servicio',
+          [
+            {text: 'OK', onPress: () => Actions.home()},
+          ]
+        );
+
+      } catch (error) {
+        Alert.alert(
+          'Error',
+          error.toString(),
+          [
+            {text: 'OK', onPress: () => console.log('OK Pressed!')},
+          ]
+        );
+      }
     }
 
     render() {
@@ -44,14 +73,25 @@ export default class Login extends Component {
                     <View>
                         <Text style={RegisterPageStyles.title}>{this.props.title}</Text>
                         <View style={{margin:15}} />
-                        <TextInput style={RegisterPageStyles.textInput} placeholder={usernamePlaceholder}/>
-                        <TextInput style={RegisterPageStyles.textInput} secureTextEntry={true}
-                            placeholder={passwordPlaceholder} />
-                        <TextInput style={RegisterPageStyles.textInput} secureTextEntry={true}
-                            placeholder={passwordAgainPlaceholder} />
+                        <TextInput
+                          style={RegisterPageStyles.textInput}
+                          placeholder={usernamePlaceholder}
+                          onChangeText={(value) => { this.updateCredentials('email', value); }}
+                        />
+                        <TextInput
+                          style={RegisterPageStyles.textInput} secureTextEntry={true}
+                          placeholder={passwordPlaceholder}
+                          onChangeText={(value) => { this.updateCredentials('password', value); }}
+                        />
+                        <TextInput
+                          style={RegisterPageStyles.textInput}
+                          secureTextEntry={true}
+                          placeholder={passwordAgainPlaceholder}
+                          onChangeText={(value) => { this.updateCredentials('passwordAgain', value); }}
+                        />
                         <View style={{margin:7}} />
                         <TouchableHighlight style={RegisterPageStyles.primaryButton}
-                            onPress={Actions.home}>
+                            onPress={() => this.register()}>
                             <Text style={RegisterPageStyles.primaryButtonText}>{submit}</Text>
                         </TouchableHighlight>
 
