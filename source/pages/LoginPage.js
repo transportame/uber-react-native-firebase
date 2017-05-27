@@ -6,6 +6,7 @@ import {
     StyleSheet,
     TouchableHighlight,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 
@@ -35,7 +36,13 @@ export default class Login extends Component {
           await this.props.login(this.state.email, this.state.password);
           Actions.home();
         } catch (error) {
-          console.log(error.toString())
+          Alert.alert(
+            'Error',
+            error.toString(),
+            [
+              {text: 'OK', onPress: () => console.log('OK Pressed!')},
+            ]
+          );
         }
     }
 
