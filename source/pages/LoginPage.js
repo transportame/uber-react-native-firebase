@@ -23,6 +23,21 @@ export default class Login extends Component {
         loading: false,
     }
 
+    updateCredentials(key, value) {
+      let credentials = this.state;
+      credentials[key] = value;
+      this.setState(credentials);
+    }
+
+    async login() {
+        try {
+          await this.props.login(this.state.email, this.state.password);
+          Actions.home();
+        } catch (error) {
+          console.log(error.toString())
+        }
+    }
+
     render() {
         if (!this.state.loading) {
             if (this.props.usernamePlaceholder)
@@ -40,12 +55,20 @@ export default class Login extends Component {
                     <View>
                         <Text style={LoginPageStyles.title}>{this.props.title}</Text>
                         <View style={{margin:15}} />
-                        <TextInput style={LoginPageStyles.textInput} placeholder={usernamePlaceholder}/>
-                        <TextInput style={LoginPageStyles.textInput} secureTextEntry={true}
-                            placeholder={passwordPlaceholder} />
+                        <TextInput
+                          onChangeText={(value) => { this.updateCredentials('email', value); }}
+                          style={LoginPageStyles.textInput}
+                          placeholder={usernamePlaceholder}
+                        />
+                        <TextInput
+                          onChangeText={(value) => { this.updateCredentials('password', value); }}
+                          style={LoginPageStyles.textInput}
+                          secureTextEntry={true}
+                          placeholder={passwordPlaceholder}
+                        />
                         <View style={{margin:7}} />
                         <TouchableHighlight style={LoginPageStyles.primaryButton}
-                            onPress={Actions.home}>
+                            onPress={() => this.login() }>
                             <Text style={LoginPageStyles.primaryButtonText}>{submit}</Text>
                         </TouchableHighlight>
 

@@ -8,7 +8,7 @@ firebase.initializeApp({
 });
 
 export const login = async (email, password) => {
-  return firebase.auth().signInWithEmailAndPassword(email, pass);
+  return firebase.auth().signInWithEmailAndPassword(email, password);
 };
 
 export const logout = async () => {
@@ -16,5 +16,5 @@ export const logout = async () => {
 };
 
 export const register = async (email, password) => {
-  return firebase.auth().createUserWithEmailAndPassword(email, pass);
+  return firebase.auth().createUserWithEmailAndPassword(email, password);
 };

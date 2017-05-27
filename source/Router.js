@@ -6,6 +6,7 @@ import LoginPage          from './pages/LoginPage'
 import RegisterPage       from './pages/RegisterPage'
 import RegisteredPage     from './pages/RegisteredPage'
 import PickUpLocationPage from './pages/PickUpLocationPage'
+import { login, logout, register } from '../data/fbio';
 
 export default class TransportameRouter extends Component {
   render() {
@@ -13,7 +14,7 @@ export default class TransportameRouter extends Component {
       <Router>
         <Scene key="root">
           <Scene key="auth" initial={true}>
-            <Scene key="login" component={LoginPage} title="Login"></Scene>
+            <Scene key="login" component={LoginPage} title="Login" login={login}></Scene>
             <Scene key="signUp" component={RegisterPage} title="Registro"></Scene>
             <Scene key="signUpCompleted" component={RegisteredPage} title="Registro completo!"></Scene>
           </Scene>
