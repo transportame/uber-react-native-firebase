@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import {
     View,
-    Text,
     TextInput,
     StyleSheet,
     TouchableHighlight,
@@ -9,7 +8,7 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 
-import { Button } from '../components';
+import { Button, Text } from 'native-base';
 
 
 var usernamePlaceholder="Username";
@@ -54,7 +53,7 @@ export default class Login extends Component {
                 <View style={LoginPageStyles.container}>
                     <View style={LoginPageStyles.body}>
                     <View>
-                        <Text style={LoginPageStyles.title}>{this.props.title}</Text>
+                        <Text>{this.props.title}</Text>
                         <View style={{margin:15}} />
                         <TextInput
                           onChangeText={(value) => { this.updateCredentials('email', value); }}
@@ -68,12 +67,17 @@ export default class Login extends Component {
                           placeholder={passwordPlaceholder}
                         />
                         <View style={{margin:7}} />
-                      <Button block onPress={() => this.login()}>
+
+                        <Button block onPress={() => this.login()}>
+                          <Text>
                             { submit }
+                          </Text>
                         </Button>
 
-                        <Button outline bordered onPress={Actions.signUp}>
-                            { register }
+                        <Button block transparent onPress={Actions.signUp}>
+                          <Text>
+                            { submit }
+                          </Text>
                         </Button>
                     </View>
                     </View>
