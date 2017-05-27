@@ -80,9 +80,9 @@ export default class Login extends Component {
                             { submit }
                           </Text>
                         </Button>
-                        
-                        <Button block success onPress={Actions.signUp}>
-                          <Text>
+
+                        <Button block success transparent onPress={Actions.signUp}>
+                          <Text style={{color: "#5cb85c"}}>
                             { register }
                           </Text>
                         </Button>
