@@ -3,12 +3,13 @@ import {
     View,
     Text,
     TextInput,
-    Button,
     StyleSheet,
     TouchableHighlight,
     ActivityIndicator,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
+
+import { Button } from '../components';
 
 
 var usernamePlaceholder="Username";
@@ -67,15 +68,13 @@ export default class Login extends Component {
                           placeholder={passwordPlaceholder}
                         />
                         <View style={{margin:7}} />
-                        <TouchableHighlight style={LoginPageStyles.primaryButton}
-                            onPress={() => this.login() }>
-                            <Text style={LoginPageStyles.primaryButtonText}>{submit}</Text>
-                        </TouchableHighlight>
+                      <Button block onPress={() => this.login()}>
+                            { submit }
+                        </Button>
 
-                        <TouchableHighlight style={LoginPageStyles.transparentButton}
-                            onPress={Actions.signUp}>
-                            <Text style={LoginPageStyles.transparentButtonText}>{register}</Text>
-                        </TouchableHighlight>
+                        <Button outline bordered onPress={Actions.signUp}>
+                            { register }
+                        </Button>
                     </View>
                     </View>
                 </View>
@@ -116,11 +115,6 @@ const LoginPageStyles = StyleSheet.create({
         color: '#0485A9',
         textAlign: 'center',
         fontSize: 16
-    },
-    primaryButton: {
-        marginTop: 10,
-        padding:   10,
-        backgroundColor: 'black',
     },
     primaryButtonText: {
         color: '#FFF',
