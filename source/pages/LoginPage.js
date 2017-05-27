@@ -60,7 +60,6 @@ export default class Login extends Component {
                 <View style={LoginPageStyles.container}>
                     <View style={LoginPageStyles.body}>
                     <View>
-                        <Text>{this.props.title}</Text>
                         <View style={{margin:15}} />
                         <TextInput
                           onChangeText={(value) => { this.updateCredentials('email', value); }}
