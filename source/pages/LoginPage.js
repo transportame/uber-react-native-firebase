@@ -14,7 +14,7 @@ import { Button, Text } from 'native-base';
 var usernamePlaceholder="Username";
 var passwordPlaceholder="Password";
 var submit="Login";
-var register="Register";
+var register="Registro";
 
 export default class Login extends Component {
     state = {
@@ -73,10 +73,10 @@ export default class Login extends Component {
                             { submit }
                           </Text>
                         </Button>
-
-                        <Button block transparent onPress={Actions.signUp}>
+                        
+                        <Button block success onPress={Actions.signUp}>
                           <Text>
-                            { submit }
+                            { register }
                           </Text>
                         </Button>
                     </View>
