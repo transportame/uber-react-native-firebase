@@ -5,11 +5,11 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import { Button, Text, Footer, FooterTab, Card, CardItem, Container, Body, Content } from 'native-base';
+import {
+  Button, Text, Footer, FooterTab, Card, CardItem, Container, Body, Content, Icon, Fab
+} from 'native-base';
 import MapView from 'react-native-maps';
 import RNGooglePlaces from 'react-native-google-places';
-
-var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 
 import Loading from '../components/Loading'
 
@@ -41,7 +41,8 @@ export default class Map extends Component {
           destination: {
             name: 'Cuál es tu destino?'
           }
-        }
+        },
+        menuActive: false
     }
     watchID = null
 
@@ -188,6 +189,7 @@ export default class Map extends Component {
         if (mapRegion && passengerLocation && ubers) {
             return (
                 <View style={styles.container}>
+
                     <MapView style={styles.map} region={mapRegion}
                              loadingEnabled={true} loadingIndicatorColor="#999999"
                              onRegionChange={this.onRegionChange.bind(this)}>
@@ -245,6 +247,25 @@ export default class Map extends Component {
 
                       </View>
                     </View>
+
+                    <Fab
+                          active={this.state.menuActive}
+                          direction="up"
+                          containerStyle={{ marginLeft: 50, marginBottom: 20 }}
+                          style={{ backgroundColor: '#5067FF' }}
+                          position="bottomRight"
+                          onPress={() => this.setState({ menuActive: !this.state.menuActive })}>
+                          <Icon name="share" />
+                          <Button style={{ backgroundColor: '#34A34F' }}>
+                              <Icon name="logo-whatsapp" />
+                          </Button>
+                          <Button style={{ backgroundColor: '#3B5998' }}>
+                              <Icon name="logo-facebook" />
+                          </Button>
+                          <Button disabled style={{ backgroundColor: '#DD5144' }}>
+                              <Icon name="mail" />
+                          </Button>
+                      </Fab>
 
                   <Footer>
                     <FooterTab>
