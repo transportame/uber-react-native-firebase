@@ -11,9 +11,11 @@
     "native-base": "^2.1.4",
     "react": "16.0.0-alpha.6",
     "react-native": "0.44.0",
+    "react-native-google-places": "^2.1.0",
     "react-native-google-places-autocomplete": "^1.2.12",
     "react-native-maps": "^0.15.2",
-    "react-native-router-flux": "^3.39.1"
+    "react-native-router-flux": "^3.39.1",
+    "react-native-star-rating": "^1.0.7"
   },
   "devDependencies": {
     "babel-jest": "20.0.3",

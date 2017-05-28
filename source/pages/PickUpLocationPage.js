@@ -5,8 +5,10 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import { Button, Text } from 'native-base';
+import { Button, Text, Footer, FooterTab, Card, CardItem, Container, Body, Content } from 'native-base';
 import MapView from 'react-native-maps';
+import RNGooglePlaces from 'react-native-google-places';
+
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 
 import Loading from '../components/Loading'
@@ -14,13 +16,32 @@ import Loading from '../components/Loading'
 const uberIcon   = require('../../assets/img/uber.png')
 const searchIcon = require('../../assets/img/search.png')
 
+const deltas = {
+  pickup: {
+    latitudeDelta:  0.00922 * 1.5,
+    longitudeDelta: 0.00421 * 1.5,
+  },
+  destination: {
+    latitudeDelta:  0.00922 * 15,
+    longitudeDelta: 0.00421 * 15,
+  }
+};
+
 export default class Map extends Component {
     state = {
-        mapRegion:         null,
+        mapRegion: null,
         passengerLocation: null,
-        ubers:             null,
-        type:              'x',
-        gpsAccuracy:       null,
+        ubers: null,
+        type: 'x',
+        gpsAccuracy: null,
+        travelLocations: {
+          pickup: {
+            name: 'Cuál es tu ubicación?',
+          },
+          destination: {
+            name: 'Cuál es tu destino?'
+          }
+        }
     }
     watchID = null
 
@@ -101,7 +122,7 @@ export default class Map extends Component {
     onPassengerLocationChange(coords) {
         this.setState({
             passengerLocation: coords,
-            ubers:             this.generateRandomUbers(coords),
+            ubers: this.generateRandomUbers(coords),
         });
 
         //console.log(this.state.passengerLocation);
@@ -120,6 +141,41 @@ export default class Map extends Component {
         this.onPassengerLocationChange(coords);
     }
 
+    openSearchModal(name) {
+      RNGooglePlaces.openAutocompleteModal({
+        country: 'MX',
+        latitude: this.state.passengerLocation.latitude,
+        longitude: this.state.passengerLocation.longitude,
+        radious: 5000
+      })
+      .then((place) => {
+          console.log(place);
+
+          let newRegion = {
+              latitude:       place.latitude,
+              longitude:      place.longitude,
+              latitudeDelta:  deltas[name].latitudeDelta,
+              longitudeDelta: deltas[name].longitudeDelta,
+          }
+
+          this.setState({mapRegion: newRegion}, this.updateRegionCallback);
+
+
+  		  this.updateTravelLocation(name, place);
+      })
+      .catch(error => console.log(error.message));
+    }
+
+    updateTravelLocation(name, value) {
+      const travelLocations = this.state.travelLocations;
+
+      travelLocations[name] = value;
+
+      console.log(travelLocations);
+
+      this.setState({travelLocations});
+    }
+
     render() {
         //Too much magic!!!!
         const { mapRegion, passengerLocation, ubers, gpsAccuracy} = this.state;
@@ -135,8 +191,17 @@ export default class Map extends Component {
                     <MapView style={styles.map} region={mapRegion}
                              loadingEnabled={true} loadingIndicatorColor="#999999"
                              onRegionChange={this.onRegionChange.bind(this)}>
-                        <MapView.Marker draggable coordinate={passengerLocation}
-                            onDragEnd = {(e) => {this.onPassengerLocationChange(e.nativeEvent.coordinate)}}/>
+                        <MapView.Marker draggable coordinate={passengerLocation}/>
+
+                          {
+                            Object.values(this.state.travelLocations).map((location) => {
+                              if(location.latitude) {
+                                return (
+                                  <MapView.Marker draggable coordinate={location} key={location.name}/>
+                                )
+                              }
+                            })
+                          }
 
                         {ubers.map((uber, index) =>
                             <MapView.Marker title={uber.name} description={uber.type} image={uberIcon}
@@ -144,57 +209,50 @@ export default class Map extends Component {
                         )}
                     </MapView>
 
+                    <Content>
+                      <Card>
+                        <CardItem>
+                          <Body>
+                            <Button transparent primary onPress={() => this.openSearchModal('pickup')}>
+                              <Text>
+                                {this.state.travelLocations.pickup.name}
+                              </Text>
+                            </Button>
+                          </Body>
+                        </CardItem>
+                      </Card>
+                      <Card>
+
+                        <CardItem>
+                          <Body>
+                            <Button transparent primary onPress={() => this.openSearchModal('destination')}>
+                              <Text>
+                                {this.state.travelLocations.destination.name}
+                              </Text>
+                            </Button>
+                          </Body>
+                        </CardItem>
+                      </Card>
+
+                    </Content>
+
                     <View style={styles.locations}>
                       <View style={styles.searchContainer}>
-                          <GooglePlacesAutocomplete
-                              styles={searchBarStyles}
-                              placeholder='Ingresa tu ubicación'
-                              minLength={3} autoFocus={false}
-                              fetchDetails={true}
-                              enablePoweredByContainer={false}
-                              currentLocation={true}
-                              currentLocationLabel='Ubicación Actual'
 
-                              onPress={(data, details = null) => {
-                                  let newRegion = {
-                                      latitude:       details.geometry.location.lat,
-                                      longitude:      details.geometry.location.lng,
-                                      latitudeDelta:  this.state.mapRegion.latitudeDelta,
-                                      longitudeDelta: this.state.mapRegion.longitudeDelta,
-                                  }
-
-                                  this.setState({mapRegion: newRegion}, this.updateRegionCallback);
-
-                              }}
-                              query={{
-                                key:      'AIzaSyDF_xPY72A9X_dy13ud06Lg6Die6BJ_98M',
-                                language: 'es',
-                                types:    'geocode', }}
-                          />
                       </View>
 
                       <View style={styles.searchContainer}>
-                          <GooglePlacesAutocomplete
-                              styles={searchBarStyles}
-                              placeholder='Ingresa tu destino'
-                              minLength={3} autoFocus={false}
-                              fetchDetails={true}
-                              enablePoweredByContainer={false}
-                              currentLocation={false}
 
-                              query={{
-                                key:      'AIzaSyDF_xPY72A9X_dy13ud06Lg6Die6BJ_98M',
-                                language: 'es',
-                                types:    'geocode', }}
-                          />
                       </View>
                     </View>
 
-                  <View style={styles.requestButton}>
-                    <Button full>
-                        <Text>Pedir!</Text>
-                    </Button>
-                  </View>
+                  <Footer>
+                    <FooterTab>
+                      <Button primary full>
+                          <Text>Pedir!</Text>
+                      </Button>
+                    </FooterTab>
+                  </Footer>
                 </View>
             );
         } else {
@@ -208,6 +266,7 @@ export default class Map extends Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        justifyContent: 'center',
     },
     locations: {
       flex: 1,
@@ -248,6 +307,9 @@ const searchBarStyles = StyleSheet.create({
   },
   predefinedPlacesDescription: {
     color: '#1faadb',
+  },
+  listView: {
+    backgroundColor: 'white',
   },
   description: {
     fontWeight: 'bold',
