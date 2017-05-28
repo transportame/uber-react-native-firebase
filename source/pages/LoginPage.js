@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 
-import { Button, Text } from 'native-base';
+import { Container, Content, Form, Button, Text,  Item, Input,Label } from 'native-base';
 
 
 var usernamePlaceholder="Username";
@@ -58,35 +58,30 @@ export default class Login extends Component {
 
             return (
                 <View style={LoginPageStyles.container}>
-                    <View style={LoginPageStyles.body}>
-                    <View>
-                        <View style={{margin:15}} />
-                        <TextInput
-                          onChangeText={(value) => { this.updateCredentials('email', value); }}
-                          style={LoginPageStyles.textInput}
-                          placeholder={usernamePlaceholder}
-                        />
-                        <TextInput
-                          onChangeText={(value) => { this.updateCredentials('password', value); }}
-                          style={LoginPageStyles.textInput}
-                          secureTextEntry={true}
-                          placeholder={passwordPlaceholder}
-                        />
-                        <View style={{margin:7}} />
+                  <Content>
+                    <Form>
+                      <Item floatingLabel>
+                        <Label>Username</Label>
+                        <Input />
+                      </Item>
+                      <Item floatingLabel>
+                        <Label>Password</Label>
+                        <Input />
+                      </Item>
+                    </Form>
 
-                        <Button block onPress={() => this.login()}>
-                          <Text>
-                            { submit }
-                          </Text>
-                        </Button>
+                    <Button block onPress={() => this.login()}>
+                      <Text>
+                        { submit }
+                      </Text>
+                    </Button>
 
-                        <Button block success transparent onPress={Actions.signUp}>
-                          <Text style={{color: "#5cb85c"}}>
-                            { register }
-                          </Text>
-                        </Button>
-                    </View>
-                    </View>
+                    <Button block success transparent onPress={Actions.signUp}>
+                      <Text style={{color: "#5cb85c"}}>
+                        { register }
+                      </Text>
+                    </Button>
+                  </Content>
                 </View>
             );
         } else {
@@ -97,42 +92,8 @@ export default class Login extends Component {
 
 const LoginPageStyles = StyleSheet.create({
     container: {
-        alignItems: 'stretch',
-        flex: 1
-    },
-    body: {
-        flex: 9,
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'center',
-        backgroundColor: '#F5FCFF',
-    },
-    title: {
-        fontSize: 25,
-        textAlign: 'center',
-        margin: 5,
-    },
-    textInput: {
-        height: 40,
-        width: 250,
-        borderWidth: 1
-    },
-    transparentButton: {
-        marginTop: 5,
-        padding:  15,
-    },
-    transparentButtonText: {
-        color: '#0485A9',
-        textAlign: 'center',
-        fontSize: 16
-    },
-    primaryButtonText: {
-        color: '#FFF',
-        textAlign: 'center',
-        fontSize: 18
-    },
-    image: {
-        width:  100,
-        height: 100
-    },
+      marginTop: 150,
+      marginHorizontal: 50,
+      flex: 1
+    }
 });
