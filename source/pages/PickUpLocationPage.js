@@ -8,8 +8,10 @@ import {
 import {
   Button, Text, Footer, FooterTab, Card, CardItem, Container, Body, Content, Icon, Fab
 } from 'native-base';
+import { Actions } from 'react-native-router-flux';
 import MapView from 'react-native-maps';
 import RNGooglePlaces from 'react-native-google-places';
+import { logout } from '../../data/fbio';
 
 import Loading from '../components/Loading'
 
@@ -177,6 +179,12 @@ export default class Map extends Component {
       this.setState({travelLocations});
     }
 
+    async logOut() {
+      await logout();
+
+      Actions.auth();
+    }
+
     render() {
         //Too much magic!!!!
         const { mapRegion, passengerLocation, ubers, gpsAccuracy} = this.state;
@@ -255,15 +263,15 @@ export default class Map extends Component {
                           style={{ backgroundColor: '#5067FF' }}
                           position="bottomRight"
                           onPress={() => this.setState({ menuActive: !this.state.menuActive })}>
-                          <Icon name="share" />
-                          <Button style={{ backgroundColor: '#34A34F' }}>
-                              <Icon name="logo-whatsapp" />
+                          <Icon name="md-reorder" />
+                          <Button style={{ backgroundColor: '#DD5144' }}  onPress={this.logOut}>
+                              <Icon name="md-log-out" />
+                          </Button>
+                          <Button style={{ backgroundColor: '#34A34F' }}  onPress={() => this.setState({ menuActive: !this.state.menuActive })}>
+                              <Icon name="md-car" />
                           </Button>
                           <Button style={{ backgroundColor: '#3B5998' }}>
-                              <Icon name="logo-facebook" />
-                          </Button>
-                          <Button disabled style={{ backgroundColor: '#DD5144' }}>
-                              <Icon name="mail" />
+                              <Icon name="md-person" />
                           </Button>
                       </Fab>
 
