@@ -62,11 +62,13 @@ export default class Login extends Component {
                     <Form>
                       <Item floatingLabel>
                         <Label>Correo</Label>
-                        <Input onChangeText={(value) => { this.updateCredentials('email', value); }}/>
+                      <Input keyboardType={'email-address'}
+                          onChangeText={(value) => { this.updateCredentials('email', value); }}/>
                       </Item>
                       <Item floatingLabel>
                         <Label>Contraseña</Label>
-                      <Input onChangeText={(value) => { this.updateCredentials('password', value); }}/>
+                      <Input secureTextEntry={true}
+                         onChangeText={(value) => { this.updateCredentials('password', value); }}/>
                       </Item>
                     </Form>
 
