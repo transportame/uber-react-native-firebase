@@ -19,6 +19,4 @@ export const register = async (email, password) => {
   return firebase.auth().createUserWithEmailAndPassword(email, password);
 };
 
-export const fbio = () => {
-  return firebase;
-}
+export default firebase;
