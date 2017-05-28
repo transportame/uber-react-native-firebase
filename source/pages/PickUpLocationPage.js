@@ -381,7 +381,7 @@ export default class Map extends Component {
                               <Thumbnail source={{uri: this.state.driver.profile_picture}} />
                               <Body>
                                 <Text> {this.state.driver.name} </Text>
-                              <Text note>Está viajando</Text>
+                              <Text note>Viajando</Text>
                               </Body>
                             </Left>
                           </CardItem>
