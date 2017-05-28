@@ -58,7 +58,7 @@ export default class Login extends Component {
 
             return (
                 <View style={LoginPageStyles.container}>
-                  <Content>
+                  <View>
                     <Form>
                       <Item floatingLabel>
                         <Label>Username</Label>
@@ -69,6 +69,8 @@ export default class Login extends Component {
                         <Input />
                       </Item>
                     </Form>
+
+                    <View style={{marginVertical: 10}}></View>
 
                     <Button block onPress={() => this.login()}>
                       <Text>
@@ -81,7 +83,7 @@ export default class Login extends Component {
                         { register }
                       </Text>
                     </Button>
-                  </Content>
+                  </View>
                 </View>
             );
         } else {
