@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {
-  Button, Text, Footer, FooterTab, Card, CardItem, Container, Body, Content, Icon, Fab
+  Button, Text, Footer, FooterTab, Card, CardItem, Container, Body, Content, Icon, Fab, Thumbnail, Left
 } from 'native-base';
 import { Actions } from 'react-native-router-flux';
 import MapView from 'react-native-maps';
@@ -17,6 +17,14 @@ import Loading from '../components/Loading'
 
 const uberIcon   = require('../../assets/img/uber.png')
 const searchIcon = require('../../assets/img/search.png')
+
+const steps = {
+  PICKUP: 'pickup',
+  WAITING: 'waiting',
+  ONWAY: 'onway',
+  ONTRAVEL: 'ontravel',
+  FINISHED: 'finished'
+}
 
 const deltas = {
   pickup: {
@@ -29,8 +37,18 @@ const deltas = {
   }
 };
 
+const driver = {
+   "name": "Maria Perez",
+   "profile_picture": "https://freedomfilm.my/wp-content/uploads/ultimatemember/28/profile_photo-120.jpg?1495120900",
+   "code": "LQO-32-08",
+   "model": "Ford Ranger",
+   "location": "19.699147, -101.237659",
+   "in_use": false
+ };
+
 export default class Map extends Component {
     state = {
+        step: steps.PICKUP,
         mapRegion: null,
         passengerLocation: null,
         ubers: null,
@@ -185,6 +203,18 @@ export default class Map extends Component {
       Actions.auth();
     }
 
+    assignDriver() {
+      this.setState({ step: steps.WAITING });
+
+      this.timeout = setTimeout(() => {
+        this.setState({ step: steps.ONWAY});
+      }, 5000);
+    }
+
+    cancelTravel() {
+      this.setState({ step: steps.PICKUP });
+    }
+
     render() {
         //Too much magic!!!!
         const { mapRegion, passengerLocation, ubers, gpsAccuracy} = this.state;
@@ -267,7 +297,7 @@ export default class Map extends Component {
                           <Button style={{ backgroundColor: '#DD5144' }}  onPress={this.logOut}>
                               <Icon name="md-log-out" />
                           </Button>
-                          <Button style={{ backgroundColor: '#34A34F' }}  onPress={() => this.setState({ menuActive: !this.state.menuActive })}>
+                          <Button style={{ backgroundColor: '#34A34F' }}>
                               <Icon name="md-car" />
                           </Button>
                           <Button style={{ backgroundColor: '#3B5998' }}>
@@ -275,13 +305,49 @@ export default class Map extends Component {
                           </Button>
                       </Fab>
 
-                  <Footer>
-                    <FooterTab>
-                      <Button primary full>
-                          <Text>Pedir!</Text>
-                      </Button>
-                    </FooterTab>
-                  </Footer>
+                    { this.state.step === steps.PICKUP && (
+                      <Footer>
+                        <FooterTab>
+                          <Button primary full onPress={() => this.assignDriver()}>
+                              <Text>Pedir!</Text>
+                          </Button>
+                        </FooterTab>
+                      </Footer>
+                    )}
+                    { this.state.step === steps.WAITING && (
+                      <Footer>
+                        <FooterTab>
+                          <Button danger full onPress={() => this.cancelTravel()}>
+                              <Text>Cancelar</Text>
+                          </Button>
+                        </FooterTab>
+                      </Footer>
+                    )}
+
+                  { this.state.step === steps.ONWAY && (
+                    <View style={styles.bottom}>
+                      <Card>
+                        <Content>
+                          <CardItem>
+                            <Left>
+                              <Thumbnail source={driver.profile_picture} />
+                              <Body>
+                                <Text> {driver.name} </Text>
+                                <Text note>Está en camino</Text>
+                              </Body>
+                            </Left>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-car"></Icon>
+                            <Text>{driver.model} {driver.code}</Text>
+                          </CardItem>
+                        </Content>
+                        <Button danger full onPress={() => this.cancelTravel()}>
+                            <Text>Cancelar</Text>
+                        </Button>
+                      </Card>
+                    </View>
+                  )}
                 </View>
             );
         } else {
@@ -313,7 +379,7 @@ const styles = StyleSheet.create({
     searchContainer: {
       flex: 1
     },
-    requestButton: {
+    bottom: {
       position: 'absolute',
       bottom: 0,
       right: 0,
