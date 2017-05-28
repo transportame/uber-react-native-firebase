@@ -3,9 +3,9 @@ import {
   StyleSheet,
   View,
   Image,
-  Text,
   TouchableOpacity,
 } from 'react-native';
+import { Button, Text } from 'native-base';
 import MapView from 'react-native-maps';
 var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
 
@@ -180,11 +180,9 @@ export default class Map extends Component {
                         />
                     </View>
 
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.button}>
-                            <Text>Pedir!</Text>
-                        </TouchableOpacity>
-                    </View>
+                    <Button full>
+                        <Text>Pedir!</Text>
+                    </Button>
                 </View>
             );
         } else {
@@ -215,10 +213,6 @@ const styles = StyleSheet.create({
         flex: 1,
         //zIndex: 1, //move to front
         //backgroundColor: 'rgba(255,255,255,0.8)',
-    },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
     },
     button: {
         alignItems: 'center',
