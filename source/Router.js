@@ -18,7 +18,7 @@ export default class TransportameRouter extends Component {
             <Scene key="signUp" component={RegisterPage} title="Registro" register={register}></Scene>
             <Scene key="signUpCompleted" component={RegisteredPage} title="Registro completo!"></Scene>
           </Scene>
-          <Scene key="home" initial={!this.props.isLogged}>
+          <Scene key="home" initial={!!this.props.isLogged}>
             <Scene key="pickUpLocation" component={PickUpLocationPage} hideNavBar={true}></Scene>
           </Scene>
         </Scene>
