@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 
-import { Container, Content, Form, Button, Text,  Item, Input,Label } from 'native-base';
+import { Container, Content, Form, Button, Text,  Item, Input, Label } from 'native-base';
 
 
 var usernamePlaceholder="Username";
@@ -61,12 +61,12 @@ export default class Login extends Component {
                   <View>
                     <Form>
                       <Item floatingLabel>
-                        <Label>Username</Label>
-                        <Input />
+                        <Label>Correo</Label>
+                        <Input onChangeText={(value) => { this.updateCredentials('email', value); }}/>
                       </Item>
                       <Item floatingLabel>
-                        <Label>Password</Label>
-                        <Input />
+                        <Label>Contraseña</Label>
+                      <Input onChangeText={(value) => { this.updateCredentials('password', value); }}/>
                       </Item>
                     </Form>
 
