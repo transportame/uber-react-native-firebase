@@ -73,7 +73,7 @@ export default class Login extends Component {
                     <Form>
                       <Item floatingLabel>
                         <Label>{usernamePlaceholder}</Label>
-                        <Input keyboardType={'email-address'}
+                        <Input keyboardType={'email-address'} autoCapitalize="none"
                           onChangeText={(value) => { this.updateCredentials('email', value); }}/>
                       </Item>
 
