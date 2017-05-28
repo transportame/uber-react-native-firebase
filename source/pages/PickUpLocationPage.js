@@ -11,8 +11,9 @@ import {
 import { Actions } from 'react-native-router-flux';
 import MapView from 'react-native-maps';
 import RNGooglePlaces from 'react-native-google-places';
-import { logout } from '../../data/fbio';
+import StarRating from 'react-native-star-rating';
 
+import firebase, { logout } from '../../data/fbio';
 import Loading from '../components/Loading'
 
 const uberIcon   = require('../../assets/img/uber.png')
@@ -39,12 +40,13 @@ const deltas = {
 
 const driver = {
    "name": "Maria Perez",
-   "profile_picture": "https://freedomfilm.my/wp-content/uploads/ultimatemember/28/profile_photo-120.jpg?1495120900",
+   "profile_picture": "https://freedomfilm.my/wp-content/uploads/ultimatemember/28/profile_photo-120.jpg",
    "code": "LQO-32-08",
    "model": "Ford Ranger",
    "location": "19.699147, -101.237659",
-   "in_use": false
- };
+   "in_use": false,
+   "phone": 3320708099
+  };
 
 export default class Map extends Component {
     state = {
@@ -62,6 +64,7 @@ export default class Map extends Component {
             name: 'Cuál es tu destino?'
           }
         },
+        driver: driver,
         menuActive: false
     }
     watchID = null
@@ -204,15 +207,46 @@ export default class Map extends Component {
     }
 
     assignDriver() {
-      this.setState({ step: steps.WAITING });
+      if(this.state.travelLocations.pickup.latitude && this.state.travelLocations.destination.latitude) {
 
-      this.timeout = setTimeout(() => {
-        this.setState({ step: steps.ONWAY});
-      }, 5000);
+        const ref = firebase.database().ref().child(`drivers/driver${Math.floor(Math.random() * 6) + 1  }`);
+
+        ref.on('value', (snaptshot) => {
+
+          const driver = snaptshot.val();
+
+          this.setState({ step: steps.WAITING, driver });
+
+          this.timeout = setTimeout(() => {
+            this.setState({ step: steps.ONWAY});
+
+            this.timeout = setTimeout(() => {
+              this.setState({ step: steps.ONTRAVEL});
+
+              this.timeout = setTimeout(() => {
+                this.setState({ step: steps.FINISHED});
+              }, 15000);
+
+            }, 1000);
+
+          }, 5000);
+
+        });
+      }
     }
 
     cancelTravel() {
       this.setState({ step: steps.PICKUP });
+    }
+
+    finishTravel() {
+      this.timeout = setTimeout(() => {
+        this.setState({ step: steps.PICKUP });
+      }, 500);
+    }
+
+    getImage(name) {
+      return require(`../images/${name}`);
     }
 
     render() {
@@ -286,25 +320,6 @@ export default class Map extends Component {
                       </View>
                     </View>
 
-                    <Fab
-                          active={this.state.menuActive}
-                          direction="up"
-                          containerStyle={{ marginLeft: 50, marginBottom: 20 }}
-                          style={{ backgroundColor: '#5067FF' }}
-                          position="bottomRight"
-                          onPress={() => this.setState({ menuActive: !this.state.menuActive })}>
-                          <Icon name="md-reorder" />
-                          <Button style={{ backgroundColor: '#DD5144' }}  onPress={this.logOut}>
-                              <Icon name="md-log-out" />
-                          </Button>
-                          <Button style={{ backgroundColor: '#34A34F' }}>
-                              <Icon name="md-car" />
-                          </Button>
-                          <Button style={{ backgroundColor: '#3B5998' }}>
-                              <Icon name="md-person" />
-                          </Button>
-                      </Fab>
-
                     { this.state.step === steps.PICKUP && (
                       <Footer>
                         <FooterTab>
@@ -330,16 +345,24 @@ export default class Map extends Component {
                         <Content>
                           <CardItem>
                             <Left>
-                              <Thumbnail source={driver.profile_picture} />
+                              <Thumbnail source={{uri: this.state.driver.profile_picture}} />
                               <Body>
-                                <Text> {driver.name} </Text>
+                                <Text> {this.state.driver.name} </Text>
                                 <Text note>Está en camino</Text>
                               </Body>
                             </Left>
                           </CardItem>
                           <CardItem header>
                             <Icon name="md-car"></Icon>
-                            <Text>{driver.model} {driver.code}</Text>
+                            <Text>{this.state.driver.model} {this.state.driver.code}</Text>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-call"></Icon>
+                            <Text>{this.state.driver.phone}</Text>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-star"></Icon>
+                            <Text>{this.state.driver.score}</Text>
                           </CardItem>
                         </Content>
                         <Button danger full onPress={() => this.cancelTravel()}>
@@ -348,6 +371,88 @@ export default class Map extends Component {
                       </Card>
                     </View>
                   )}
+
+                  { this.state.step === steps.ONTRAVEL && (
+                    <View style={styles.bottom}>
+                      <Card>
+                        <Content>
+                          <CardItem>
+                            <Left>
+                              <Thumbnail source={{uri: this.state.driver.profile_picture}} />
+                              <Body>
+                                <Text> {this.state.driver.name} </Text>
+                              <Text note>Está viajando</Text>
+                              </Body>
+                            </Left>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-car"></Icon>
+                            <Text>{this.state.driver.model} {this.state.driver.code}</Text>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-call"></Icon>
+                            <Text>{this.state.driver.phone}</Text>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-star"></Icon>
+                            <Text>{this.state.driver.score}</Text>
+                          </CardItem>
+                        </Content>
+                      </Card>
+                    </View>
+                  )}
+
+                  { this.state.step === steps.FINISHED && (
+                    <View style={styles.bottom}>
+                      <Card>
+                        <Content>
+                          <CardItem>
+                            <Left>
+                              <Thumbnail source={{uri: this.state.driver.profile_picture}} />
+                              <Body>
+                                <Text> {this.state.driver.name} </Text>
+                              <Text note>Califica tu viaje</Text>
+                              </Body>
+                            </Left>
+                          </CardItem>
+                          <CardItem header>
+                              <StarRating
+                                disabled={false}
+                                emptyStar={'ios-star-outline'}
+                                fullStar={'ios-star'}
+                                halfStar={'ios-star-half'}
+                                iconSet={'Ionicons'}
+                                maxStars={5}
+                                rating={this.state.starCount}
+                                selectedStar={(rating) => this.finishTravel()}
+                                starColor={'yellow'}
+                              />
+                          </CardItem>
+                        </Content>
+                      </Card>
+                    </View>
+                  )}
+
+
+                  <Fab
+                        active={this.state.menuActive}
+                        direction="up"
+                        containerStyle={{ marginLeft: 50, marginBottom: 20 }}
+                        style={{ backgroundColor: '#5067FF' }}
+                        position="bottomRight"
+                        onPress={() => this.setState({ menuActive: !this.state.menuActive })}>
+                        <Icon name="md-reorder" />
+                        <Button style={{ backgroundColor: '#DD5144' }}  onPress={this.logOut}>
+                            <Icon name="md-log-out" />
+                        </Button>
+                        <Button style={{ backgroundColor: '#34A34F' }}>
+                            <Icon name="md-car" />
+                        </Button>
+                        <Button style={{ backgroundColor: '#3B5998' }}>
+                            <Icon name="md-person" />
+                        </Button>
+                    </Fab>
+
                 </View>
             );
         } else {
