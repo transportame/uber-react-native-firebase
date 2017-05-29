@@ -227,7 +227,7 @@ export default class Map extends Component {
                 this.setState({ step: steps.FINISHED});
               }, 15000);
 
-            }, 1000);
+            }, 10000);
 
           }, 5000);
 

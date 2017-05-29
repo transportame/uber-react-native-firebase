@@ -6,6 +6,8 @@ import morelia from '../native-base-theme/variables/morelia';
 import Router from './Router';
 import firebase from '../data/fbio';
 
+console.disableYellowBox = true;
+
 export default class UberFooBarReactNativeFirebase extends Component {
     render() {
         return (
