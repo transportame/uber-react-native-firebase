@@ -3,24 +3,69 @@ import {
   StyleSheet,
   View,
   Image,
-  Text,
   TouchableOpacity,
 } from 'react-native';
+import {
+  Button, Text, Footer, FooterTab, Card, CardItem, Container, Body, Content, Icon, Fab, Thumbnail, Left
+} from 'native-base';
+import { Actions } from 'react-native-router-flux';
 import MapView from 'react-native-maps';
-var {GooglePlacesAutocomplete} = require('react-native-google-places-autocomplete');
+import RNGooglePlaces from 'react-native-google-places';
+import StarRating from 'react-native-star-rating';
 
+import firebase, { logout } from '../../data/fbio';
 import Loading from '../components/Loading'
 
 const uberIcon   = require('../../assets/img/uber.png')
 const searchIcon = require('../../assets/img/search.png')
 
+const steps = {
+  PICKUP: 'pickup',
+  WAITING: 'waiting',
+  ONWAY: 'onway',
+  ONTRAVEL: 'ontravel',
+  FINISHED: 'finished'
+}
+
+const deltas = {
+  pickup: {
+    latitudeDelta:  0.00922 * 1.5,
+    longitudeDelta: 0.00421 * 1.5,
+  },
+  destination: {
+    latitudeDelta:  0.00922 * 15,
+    longitudeDelta: 0.00421 * 15,
+  }
+};
+
+const driver = {
+   "name": "Maria Perez",
+   "profile_picture": "https://freedomfilm.my/wp-content/uploads/ultimatemember/28/profile_photo-120.jpg",
+   "code": "LQO-32-08",
+   "model": "Ford Ranger",
+   "location": "19.699147, -101.237659",
+   "in_use": false,
+   "phone": 3320708099
+  };
+
 export default class Map extends Component {
     state = {
-        mapRegion:         null,
+        step: steps.PICKUP,
+        mapRegion: null,
         passengerLocation: null,
-        ubers:             null,
-        type:              'x',
-        gpsAccuracy:       null,
+        ubers: null,
+        type: 'x',
+        gpsAccuracy: null,
+        travelLocations: {
+          pickup: {
+            name: 'Cuál es tu ubicación?',
+          },
+          destination: {
+            name: 'Cuál es tu destino?'
+          }
+        },
+        driver: driver,
+        menuActive: false
     }
     watchID = null
 
@@ -101,7 +146,7 @@ export default class Map extends Component {
     onPassengerLocationChange(coords) {
         this.setState({
             passengerLocation: coords,
-            ubers:             this.generateRandomUbers(coords),
+            ubers: this.generateRandomUbers(coords),
         });
 
         //console.log(this.state.passengerLocation);
@@ -120,6 +165,90 @@ export default class Map extends Component {
         this.onPassengerLocationChange(coords);
     }
 
+    openSearchModal(name) {
+      RNGooglePlaces.openAutocompleteModal({
+        country: 'MX',
+        latitude: this.state.passengerLocation.latitude,
+        longitude: this.state.passengerLocation.longitude,
+        radious: 5000
+      })
+      .then((place) => {
+          console.log(place);
+
+          let newRegion = {
+              latitude:       place.latitude,
+              longitude:      place.longitude,
+              latitudeDelta:  deltas[name].latitudeDelta,
+              longitudeDelta: deltas[name].longitudeDelta,
+          }
+
+          this.setState({mapRegion: newRegion}, this.updateRegionCallback);
+
+
+  		  this.updateTravelLocation(name, place);
+      })
+      .catch(error => console.log(error.message));
+    }
+
+    updateTravelLocation(name, value) {
+      const travelLocations = this.state.travelLocations;
+
+      travelLocations[name] = value;
+
+      console.log(travelLocations);
+
+      this.setState({travelLocations});
+    }
+
+    async logOut() {
+      await logout();
+
+      Actions.auth();
+    }
+
+    assignDriver() {
+      if(this.state.travelLocations.pickup.latitude && this.state.travelLocations.destination.latitude) {
+
+        const ref = firebase.database().ref().child(`drivers/driver${Math.floor(Math.random() * 6) + 1  }`);
+
+        ref.on('value', (snaptshot) => {
+
+          const driver = snaptshot.val();
+
+          this.setState({ step: steps.WAITING, driver });
+
+          this.timeout = setTimeout(() => {
+            this.setState({ step: steps.ONWAY});
+
+            this.timeout = setTimeout(() => {
+              this.setState({ step: steps.ONTRAVEL});
+
+              this.timeout = setTimeout(() => {
+                this.setState({ step: steps.FINISHED});
+              }, 15000);
+
+            }, 1000);
+
+          }, 5000);
+
+        });
+      }
+    }
+
+    cancelTravel() {
+      this.setState({ step: steps.PICKUP });
+    }
+
+    finishTravel() {
+      this.timeout = setTimeout(() => {
+        this.setState({ step: steps.PICKUP });
+      }, 500);
+    }
+
+    getImage(name) {
+      return require(`../images/${name}`);
+    }
+
     render() {
         //Too much magic!!!!
         const { mapRegion, passengerLocation, ubers, gpsAccuracy} = this.state;
@@ -132,11 +261,21 @@ export default class Map extends Component {
         if (mapRegion && passengerLocation && ubers) {
             return (
                 <View style={styles.container}>
+
                     <MapView style={styles.map} region={mapRegion}
                              loadingEnabled={true} loadingIndicatorColor="#999999"
                              onRegionChange={this.onRegionChange.bind(this)}>
-                        <MapView.Marker draggable coordinate={passengerLocation}
-                            onDragEnd = {(e) => {this.onPassengerLocationChange(e.nativeEvent.coordinate)}}/>
+                        <MapView.Marker draggable coordinate={passengerLocation}/>
+
+                          {
+                            Object.values(this.state.travelLocations).map((location) => {
+                              if(location.latitude) {
+                                return (
+                                  <MapView.Marker draggable coordinate={location} key={location.name}/>
+                                )
+                              }
+                            })
+                          }
 
                         {ubers.map((uber, index) =>
                             <MapView.Marker title={uber.name} description={uber.type} image={uberIcon}
@@ -144,47 +283,176 @@ export default class Map extends Component {
                         )}
                     </MapView>
 
-                    <View style={styles.searchContainer}>
-                        <GooglePlacesAutocomplete
-                            styles={searchBarStyles}
-                            placeholder='Choose Your Location'
-                            minLength={3} autoFocus={false}
-                            fetchDetails={true}
-                            enablePoweredByContainer={false}
-                            currentLocation={false}
-                            renderLeftButton={() => <Image style={searchBarStyles.searchIcon} source={searchIcon}/>}
-                            //currentLocation={true}
-                            //currentLocationLabel='Current Location'
+                    <Content>
+                      <Card>
+                        <CardItem>
+                          <Body>
+                            <Button transparent primary onPress={() => this.openSearchModal('pickup')}>
+                              <Text>
+                                {this.state.travelLocations.pickup.name}
+                              </Text>
+                            </Button>
+                          </Body>
+                        </CardItem>
+                      </Card>
+                      <Card>
 
-                            onPress={(data, details = null) => {
-                                //'details' is initialized on fetchDetails = true
-                                let newRegion = {
-                                    latitude:       details.geometry.location.lat,
-                                    longitude:      details.geometry.location.lng,
-                                    latitudeDelta:  this.state.mapRegion.latitudeDelta,
-                                    longitudeDelta: this.state.mapRegion.longitudeDelta,
-                                }
+                        <CardItem>
+                          <Body>
+                            <Button transparent primary onPress={() => this.openSearchModal('destination')}>
+                              <Text>
+                                {this.state.travelLocations.destination.name}
+                              </Text>
+                            </Button>
+                          </Body>
+                        </CardItem>
+                      </Card>
 
-                                //investigate why it's required to use a callback function
-                                //to force a re-render()
-                                this.setState({mapRegion: newRegion}, this.updateRegionCallback);
+                    </Content>
 
-                                //console.log('details', details);
-                                //console.log('lat', details.geometry.location.lat);
-                                //console.log('lng', details.geometry.location.lng);
-                            }}
-                            query={{
-                              key:      'AIzaSyDF_xPY72A9X_dy13ud06Lg6Die6BJ_98M',
-                              language: 'es',
-                              types:    'geocode', }}
-                        />
+                    <View style={styles.locations}>
+                      <View style={styles.searchContainer}>
+
+                      </View>
+
+                      <View style={styles.searchContainer}>
+
+                      </View>
                     </View>
 
-                    <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.button}>
-                            <Text>Pedir!</Text>
-                        </TouchableOpacity>
+                    { this.state.step === steps.PICKUP && (
+                      <Footer>
+                        <FooterTab>
+                          <Button primary full onPress={() => this.assignDriver()}>
+                              <Text>Pedir!</Text>
+                          </Button>
+                        </FooterTab>
+                      </Footer>
+                    )}
+                    { this.state.step === steps.WAITING && (
+                      <Footer>
+                        <FooterTab>
+                          <Button danger full onPress={() => this.cancelTravel()}>
+                              <Text>Cancelar</Text>
+                          </Button>
+                        </FooterTab>
+                      </Footer>
+                    )}
+
+                  { this.state.step === steps.ONWAY && (
+                    <View style={styles.bottom}>
+                      <Card>
+                        <Content>
+                          <CardItem>
+                            <Left>
+                              <Thumbnail source={{uri: this.state.driver.profile_picture}} />
+                              <Body>
+                                <Text> {this.state.driver.name} </Text>
+                                <Text note>Está en camino</Text>
+                              </Body>
+                            </Left>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-car"></Icon>
+                            <Text>{this.state.driver.model} {this.state.driver.code}</Text>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-call"></Icon>
+                            <Text>{this.state.driver.phone}</Text>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-star"></Icon>
+                            <Text>{this.state.driver.score}</Text>
+                          </CardItem>
+                        </Content>
+                        <Button danger full onPress={() => this.cancelTravel()}>
+                            <Text>Cancelar</Text>
+                        </Button>
+                      </Card>
                     </View>
+                  )}
+
+                  { this.state.step === steps.ONTRAVEL && (
+                    <View style={styles.bottom}>
+                      <Card>
+                        <Content>
+                          <CardItem>
+                            <Left>
+                              <Thumbnail source={{uri: this.state.driver.profile_picture}} />
+                              <Body>
+                                <Text> {this.state.driver.name} </Text>
+                              <Text note>Viajando</Text>
+                              </Body>
+                            </Left>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-car"></Icon>
+                            <Text>{this.state.driver.model} {this.state.driver.code}</Text>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-call"></Icon>
+                            <Text>{this.state.driver.phone}</Text>
+                          </CardItem>
+                          <CardItem header>
+                            <Icon name="md-star"></Icon>
+                            <Text>{this.state.driver.score}</Text>
+                          </CardItem>
+                        </Content>
+                      </Card>
+                    </View>
+                  )}
+
+                  { this.state.step === steps.FINISHED && (
+                    <View style={styles.bottom}>
+                      <Card>
+                        <Content>
+                          <CardItem>
+                            <Left>
+                              <Thumbnail source={{uri: this.state.driver.profile_picture}} />
+                              <Body>
+                                <Text> {this.state.driver.name} </Text>
+                              <Text note>Califica tu viaje</Text>
+                              </Body>
+                            </Left>
+                          </CardItem>
+                          <CardItem header>
+                              <StarRating
+                                disabled={false}
+                                emptyStar={'ios-star-outline'}
+                                fullStar={'ios-star'}
+                                halfStar={'ios-star-half'}
+                                iconSet={'Ionicons'}
+                                maxStars={5}
+                                rating={this.state.starCount}
+                                selectedStar={(rating) => this.finishTravel()}
+                                starColor={'yellow'}
+                              />
+                          </CardItem>
+                        </Content>
+                      </Card>
+                    </View>
+                  )}
+
+
+                  <Fab
+                        active={this.state.menuActive}
+                        direction="up"
+                        containerStyle={{ marginLeft: 50, marginBottom: 20 }}
+                        style={{ backgroundColor: '#5067FF' }}
+                        position="bottomRight"
+                        onPress={() => this.setState({ menuActive: !this.state.menuActive })}>
+                        <Icon name="md-reorder" />
+                        <Button style={{ backgroundColor: '#DD5144' }}  onPress={this.logOut}>
+                            <Icon name="md-log-out" />
+                        </Button>
+                        <Button style={{ backgroundColor: '#34A34F' }}>
+                            <Icon name="md-car" />
+                        </Button>
+                        <Button style={{ backgroundColor: '#3B5998' }}>
+                            <Icon name="md-person" />
+                        </Button>
+                    </Fab>
+
                 </View>
             );
         } else {
@@ -199,7 +467,9 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
-        backgroundColor: '#F5FCFF',
+    },
+    locations: {
+      flex: 1,
     },
     map: {
         ...StyleSheet.absoluteFillObject,
@@ -212,36 +482,36 @@ const styles = StyleSheet.create({
         height: 20,
     },
     searchContainer: {
-        flex: 1,
-        //zIndex: 1, //move to front
-        //backgroundColor: 'rgba(255,255,255,0.8)',
+      flex: 1
     },
-    buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-    },
-    button: {
-        alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.7)',
-        borderRadius: 10,
-        padding: 10,
-        margin:  10,
-    },
+    bottom: {
+      position: 'absolute',
+      bottom: 0,
+      right: 0,
+      left: 0
+    }
 });
 
 const searchBarStyles = StyleSheet.create({
-    //textInputContainer  : {
-        //backgroundColor : 'rgba(0,0,0,0)',
-    //},
-
-    //loader : {
-        //backgroundColor : "#999999"
-    //},
-
-    //TODO >> find out a smarter way to make room for the search icon
-    searchIcon: {
-      margin:      13,
-      marginLeft:   8,
-      marginRight:  0,
-    },
+  textInputContainer: {
+    backgroundColor: 'rgba(0,0,0,0)',
+    borderTopWidth: 0,
+    borderBottomWidth:0
+  },
+  textInput: {
+    marginLeft: 0,
+    marginRight: 0,
+    height: 38,
+    color: '#5d5d5d',
+    fontSize: 16
+  },
+  predefinedPlacesDescription: {
+    color: '#1faadb',
+  },
+  listView: {
+    backgroundColor: 'white',
+  },
+  description: {
+    fontWeight: 'bold',
+  },
 });

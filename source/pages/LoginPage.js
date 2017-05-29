@@ -1,26 +1,48 @@
 import React, { Component } from 'react';
 import {
     View,
-    Text,
     TextInput,
-    Button,
     StyleSheet,
     TouchableHighlight,
     ActivityIndicator,
+    Alert,
 } from 'react-native';
 import { Actions } from 'react-native-router-flux';
+
+import { Container, Content, Form, Button, Text,  Item, Input, Label } from 'native-base';
 
 
 var usernamePlaceholder="Username";
 var passwordPlaceholder="Password";
 var submit="Login";
-var register="Register";
+var register="Registro";
 
 export default class Login extends Component {
     state = {
         email:    null,
         password: null,
         loading: false,
+    }
+
+    updateCredentials(key, value) {
+      let credentials = this.state;
+      credentials[key] = value;
+      this.setState(credentials);
+    }
+
+    async login() {
+        try {
+          await this.props.login(this.state.email, this.state.password);
+          Actions.home();
+        } catch (error) {
+          Alert.alert(
+            'Error',
+            error.toString(),
+            [
+              {text: 'OK', onPress: () => console.log('OK Pressed!')},
+            ]
+          );
+        }
     }
 
     render() {
@@ -36,25 +58,34 @@ export default class Login extends Component {
 
             return (
                 <View style={LoginPageStyles.container}>
-                    <View style={LoginPageStyles.body}>
-                    <View>
-                        <Text style={LoginPageStyles.title}>{this.props.title}</Text>
-                        <View style={{margin:15}} />
-                        <TextInput style={LoginPageStyles.textInput} placeholder={usernamePlaceholder}/>
-                        <TextInput style={LoginPageStyles.textInput} secureTextEntry={true}
-                            placeholder={passwordPlaceholder} />
-                        <View style={{margin:7}} />
-                        <TouchableHighlight style={LoginPageStyles.primaryButton}
-                            onPress={Actions.home}>
-                            <Text style={LoginPageStyles.primaryButtonText}>{submit}</Text>
-                        </TouchableHighlight>
+                  <View>
+                    <Form>
+                      <Item floatingLabel>
+                        <Label>Correo</Label>
+                      <Input keyboardType={'email-address'} autoCapitalize="none"
+                          onChangeText={(value) => { this.updateCredentials('email', value); }}/>
+                      </Item>
+                      <Item floatingLabel>
+                        <Label>Contraseña</Label>
+                      <Input secureTextEntry={true}
+                         onChangeText={(value) => { this.updateCredentials('password', value); }}/>
+                      </Item>
+                    </Form>
 
-                        <TouchableHighlight style={LoginPageStyles.transparentButton}
-                            onPress={Actions.signUp}>
-                            <Text style={LoginPageStyles.transparentButtonText}>{register}</Text>
-                        </TouchableHighlight>
-                    </View>
-                    </View>
+                    <View style={{marginVertical: 10}}></View>
+
+                    <Button block onPress={() => this.login()}>
+                      <Text>
+                        { submit }
+                      </Text>
+                    </Button>
+
+                    <Button block success transparent onPress={Actions.signUp}>
+                      <Text style={{color: "#5cb85c"}}>
+                        { register }
+                      </Text>
+                    </Button>
+                  </View>
                 </View>
             );
         } else {
@@ -65,47 +96,8 @@ export default class Login extends Component {
 
 const LoginPageStyles = StyleSheet.create({
     container: {
-        alignItems: 'stretch',
-        flex: 1
-    },
-    body: {
-        flex: 9,
-        flexDirection:'row',
-        alignItems:'center',
-        justifyContent:'center',
-        backgroundColor: '#F5FCFF',
-    },
-    title: {
-        fontSize: 25,
-        textAlign: 'center',
-        margin: 5,
-    },
-    textInput: {
-        height: 40,
-        width: 250,
-        borderWidth: 1
-    },
-    transparentButton: {
-        marginTop: 5,
-        padding:  15,
-    },
-    transparentButtonText: {
-        color: '#0485A9',
-        textAlign: 'center',
-        fontSize: 16
-    },
-    primaryButton: {
-        marginTop: 10,
-        padding:   10,
-        backgroundColor: 'black',
-    },
-    primaryButtonText: {
-        color: '#FFF',
-        textAlign: 'center',
-        fontSize: 18
-    },
-    image: {
-        width:  100,
-        height: 100
-    },
+      marginTop: 150,
+      marginHorizontal: 50,
+      flex: 1
+    }
 });
